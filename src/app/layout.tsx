@@ -1,9 +1,7 @@
 import type { Metadata } from 'next'
-import { Lato } from 'next/font/google'
 import './globals.css'
 import { ChakraProvider } from '@chakra-ui/react'
-
-const lato = Lato({ subsets: ['latin'], weight: ["300"] })
+import "reflect-metadata";
 
 export const metadata: Metadata = {
   title: 'Shorten your URLs',
@@ -17,7 +15,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={lato.className}>
+      <body>
         <ChakraProvider>
           {children}
         </ChakraProvider>
