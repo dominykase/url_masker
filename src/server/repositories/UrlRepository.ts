@@ -4,6 +4,7 @@ import {inject, injectable} from "tsyringe";
 
 export interface IUrlRepository {
     create(url: string): Promise<Url>;
+    findByUuid(uuid: string): Promise<Url|null>;
 }
 
 @injectable()
@@ -18,5 +19,13 @@ export class UrlRepository implements IUrlRepository {
         });
 
         return maskedUrl;
+    }
+
+    public async findByUuid(uuid: string): Promise<Url|null> {
+        return await this.prismaClient.url.findUnique({
+            where: {
+                id: uuid,
+            },
+        });
     }
 }
