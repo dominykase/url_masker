@@ -7,21 +7,62 @@ import { SnackbarProvider, enqueueSnackbar } from 'notistack';
 import { useEffect, useState } from 'react'
 
 export default function Home() {
+  const ERROR_MESSAGE = 'An unexpected error occurred.';
+
   const [urlInput, setUrlInput] = useState<string>('')
   const [height, setHeight] = useState<number>(0)
   const { onCopy, value, setValue } = useClipboard("");
 
+  const isUrlValid = (): boolean => {
+    if (!urlInput) {
+      enqueueSnackbar('Please enter a URL.', { variant: 'warning' });
+      return false;
+    }
+    
+    if (!urlInput.startsWith('http://') && !urlInput.startsWith('https://')) {
+      enqueueSnackbar("The URL must contain 'http://' or 'https://' at the beginning.", { variant: 'warning' });
+      return false;
+    }
+    
+    if (!urlInput.includes('.')) {
+      enqueueSnackbar('Please enter a valid URL.', { variant: 'warning' });
+      return false;
+    }
+
+    return true;
+  }
+
   const shortenUrl = () => {
+    if (!isUrlValid()) {
+        return;
+    }
+
     axios.post('/api/shorten', { url: urlInput })
       .then((res) => {
-        setValue(res.data.url)
-        enqueueSnackbar('URL masked!', { variant: 'success' });
-      })
+        
+        if (res.status === 201) {
+          setValue(res.data.url)
+          enqueueSnackbar('URL masked.', { variant: 'success' });
+        }
+      }).catch((err) => {
+        if (!err.response) {
+            enqueueSnackbar(ERROR_MESSAGE, { variant: 'error' });
+            return;
+        }
+
+        if (err.response.status === 422) {
+          enqueueSnackbar(err.response.data.error, { variant: 'warning' });
+        }
+
+        if (err.response.status === 500) {
+          enqueueSnackbar(ERROR_MESSAGE, { variant: 'error' });
+        }
+      });
   }
   
   const copyToClipboard = () => {
     onCopy();
-    enqueueSnackbar('Copied to clipboard!', { variant: 'info' });
+    enqueueSnackbar('Copied to clipboard.', { variant: 'info' });
   }
 
   useEffect(() => {
